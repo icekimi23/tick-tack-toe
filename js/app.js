@@ -38,7 +38,19 @@ let view = {
         } else {
             cell.style.background = 'blue';
         }
+    },
+
+    displayResult : function (turn) {
+        let resultEl = document.querySelector('#result-text');
+
+        if (turn === 1) {
+            resultEl.innerHTML = 'Крестики победили!';
+        } else {
+            resultEl.innerHTML = 'Нолики победили!';
+        }
+
     }
+
 };
 
 let model = {
@@ -47,6 +59,7 @@ let model = {
     cellsToWin: 3,
     currentTurn: 1, // 1 - крестики, 2 нолики, 0 - пустое поле
     gameBoard: [],
+    gameOver: false, // флаг окончания игры
 
     // основная процедура хода
     makeMove: function (row, col) {
@@ -55,7 +68,9 @@ let model = {
 
         if (!this.checkMovePos(row, col)) return 'bad move';
 
-        if (this.checkResult()) {
+        this.gameBoard[row][col] = this.currentTurn;
+
+        if (this.checkResult(row, col)) {
             result = 'game over';
         }
 
@@ -68,7 +83,7 @@ let model = {
 
         let result = false;
 
-        if (this.gameBoard[row][col] === 0) {
+        if (!this.gameOver && this.gameBoard[row][col] === 0) {
             result = true;
         }
 
@@ -77,7 +92,75 @@ let model = {
     },
 
     // проверка на завершение игры
-    checkResult: function () {
+    checkResult: function (row, col) {
+
+        // TODO вариант в основном для классической игры на поле 3 на 3, не подойдет для более сложного варианта, когда
+        // количество символов подряд для победы меньше чем длина поля (поле 10*10 играем до 5 в ряд)
+
+        let currentSymbol = this.gameBoard[row][col];
+        let gameOver = false;
+
+        if (checkHorizontal.call(this) || checkVertical.call(this) || checkDiagonal.call(this)) {
+            gameOver = true;
+            this.endGame();
+        }
+
+        return gameOver;
+
+        function checkHorizontal() {
+
+            let result = false;
+
+            result = this.gameBoard[row].every((item) => {
+                return item === currentSymbol;
+            });
+
+            return result;
+
+        }
+
+        function checkVertical() {
+
+            let result = true;
+
+            for (let i = 0; i < this.rowNum; i++) {
+                if (this.gameBoard[i][col] !== currentSymbol) {
+                    result = false;
+                    break;
+                }
+            }
+
+            return result;
+
+        }
+
+        function checkDiagonal() {
+
+            let resultTop = true; // диагональ из левого верхнего угла
+            let resultBottom = true; // диагональ из левого нижнего угла
+
+            for (let i = 0; i < this.rowNum; i++) {
+                if (this.gameBoard[i][i] !== currentSymbol) {
+                    resultTop = false;
+                    break;
+                }
+            }
+            // если нашли на одной диагонали - дальше не идем
+            if (resultTop) return resultTop;
+
+            let j = 0;
+
+            for (let i = this.rowNum - 1; i >= 0; i--) {
+                if (this.gameBoard[i][j] !== currentSymbol) {
+                    resultBottom = false;
+                    break;
+                }
+                j++;
+            }
+            return resultBottom;
+
+        }
+
 
     },
 
@@ -93,6 +176,8 @@ let model = {
     // инициализируем игровое поле
     initGameBoard: function () {
 
+        this.gameBoard = [];
+
         let arrOfCells = [];
         for (let i = 0; i < this.colNum; i++) {
             arrOfCells.push(0);
@@ -102,6 +187,18 @@ let model = {
             this.gameBoard.push(arrOfCells.slice());
         }
 
+        this.startGame();
+
+    },
+
+    // установить флаг конца игры
+    endGame: function () {
+        this.gameOver = true;
+    },
+
+    // снять флаг конца игры
+    startGame: function () {
+        this.gameOver = false;
     }
 };
 
@@ -119,10 +216,13 @@ let controller = {
 
         let moveStatus = model.makeMove(row, col);
 
-        if (moveStatus !== 'bad move'){
+        if (moveStatus !== 'bad move') {
             view.displayMove(row, col, model.currentTurn);
-            if (moveStatus !== 'game over'){
+            if (moveStatus !== 'game over') {
                 model.changeTurn();
+            } else {
+                // обрабатываем завершение игры
+                view.displayResult(model.currentTurn);
             }
         }
 
@@ -139,13 +239,13 @@ let controller = {
             this.setEventHandlers();
         },
 
-        main : function () {
+        main: function () {
             model.initGameBoard();
             view.render(model.rowNum, model.colNum);
         },
 
         setEventHandlers: function () {
-            view._el.addEventListener('click',controller.onCellClick);
+            view._el.addEventListener('click', controller.onCellClick);
         }
 
     };
