@@ -9,6 +9,8 @@ let view = {
     // отрисовывает игровое поле
     render: function (rowNum, colNum) {
 
+        this._el.innerHTML = '';
+
         let table = document.createElement('table');
         table.id = 'game-board';
 
@@ -105,18 +107,6 @@ let controller = {
 
         controller.trigger('move', moveData);
 
-        // let moveStatus = model.makeMove(row, col);
-        //
-        // if (moveStatus !== 'bad move') {
-        //     view.displayMove(row, col, model.currentTurn);
-        //     if (moveStatus !== 'game over') {
-        //         model.changeTurn();
-        //     } else {
-        //         // обрабатываем завершение игры
-        //         view.displayResult(model.currentTurn);
-        //     }
-        // }
-
     },
 
     // обработчик клика на кнопку поиска игры
@@ -183,7 +173,8 @@ let controller = {
             });
             // событие окончания игры
             controller._socket.on('game over', (gameData) => {
-                console.log('game end: ', gameData);
+                view.displayMove(gameData.lastMove.row, gameData.lastMove.col, gameData.currentTurn);
+                view.off('click',controller.onCellClick)
             });
         }
 

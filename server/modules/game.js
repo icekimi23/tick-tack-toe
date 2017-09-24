@@ -1,8 +1,8 @@
 /**
  * Класс реализующий логику партии
  */
-class Game{
-    constructor(options){
+class Game {
+    constructor(options) {
         this.gameID = options.gameID;
         this.playerOne = options.playerOne;
         this.playerTwo = options.playerTwo;
@@ -12,20 +12,20 @@ class Game{
         this.currentTurn = 1; // 1 - крестики, 2 нолики, 0 - пустое поле
         this.gameBoard = [];
         this.lastMove = null;
-        this.gameOver = false; // флаг окончания игры
+        this.gameSummary = ''; // кто выиграл или ничья
     }
 
     // основная процедура хода
-    makeMove(row, col) {
+    makeMove(row, col, id) {
 
         let result = 'ok';
 
-        if (!this.checkMovePos(row, col)) return 'bad move';
+        if (!this.checkMovePos(row, col) || !this.checkMoveInTurn(id))   return 'bad move';
 
         this.gameBoard[row][col] = this.currentTurn;
         this.lastMove = {
-            row : row,
-            col : col
+            row: row,
+            col: col
         };
         this.changeTurn();
 
@@ -42,12 +42,27 @@ class Game{
 
         let result = false;
 
-        if (!this.gameOver && this.gameBoard[row][col] === 0) {
+        if (!this.gameSummary && this.gameBoard[row][col] === 0) {
             result = true;
         }
 
         return result;
 
+    }
+
+    // проверка не нарушает ли ход очередность ходов (быстрый клик и т.д.)
+    checkMoveInTurn(id){
+
+        let result = false;
+        let currentTurn = this.getCurrentTurn();
+        let PlayerOneID = this.getPlayerOne();
+        let PlayerTwoID = this.getPlayerTwo();
+
+        if ((currentTurn === 1 && id === PlayerOneID) || (currentTurn === 2 && id === PlayerTwoID)){
+            // очередность хода соблюдается
+            result = true;
+        }
+        return result;
     }
 
     // проверка на завершение игры
@@ -61,10 +76,25 @@ class Game{
 
         if (checkHorizontal.call(this) || checkVertical.call(this) || checkDiagonal.call(this)) {
             gameOver = true;
-            this.endGame();
+            this.endGame(currentSymbol);
+        } else if (checkEmtyCells.call(this)) {
+            gameOver = true;
+            this.endGame('draw');
         }
 
         return gameOver;
+
+        // проверка на ничью
+        function checkEmtyCells() {
+            for (let i = 0; i < this.gameBoard.length; i++) {
+                for (let j = 0; j < this.gameBoard[i].length; j++) {
+                    if (this.gameBoard[i][j] == 0) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
 
         function checkHorizontal() {
 
@@ -150,58 +180,66 @@ class Game{
 
     }
 
-    // установить флаг конца игры
-    endGame() {
-        this.gameOver = true;
+    // установить состояние конца игры (допустимые значения 1,2 или draw)
+    endGame(result) {
+        if (result == 1) {
+            this.gameSummary = 'Player One Win';
+        } else if (result == 2) {
+            this.gameSummary = 'Player Two Win';
+        } else {
+            this.gameSummary = result;
+        }
+
     }
 
     // снять флаг конца игры
     startGame() {
-        this.gameOver = false;
+        this.gameSummary = '';
     }
 
-    getPlayerOne(){
+    getPlayerOne() {
         return this.playerOne;
     }
 
-    getPlayerTwo(){
+    getPlayerTwo() {
         return this.playerTwo;
     }
 
-    getCurrentTurn(){
+    getCurrentTurn() {
         return this.currentTurn;
     }
 
-    getGameID(){
+    getGameID() {
         return this.gameID;
     }
 
-    getLastMove(){
+    getLastMove() {
         return this.lastMove;
     }
 
-    getGameOver(){
-        return this.gameOver;
+    getGameSummary() {
+        return this.gameSummary;
     }
 
-    getRowNum(){
+    getRowNum() {
         return this.rowNum;
     }
 
-    getColNum(){
+    getColNum() {
         return this.colNum;
     }
 
     // сформировать данные для клиентов
-    getGameData(){
+    getGameData() {
         let data = {
-            playerOne : this.getPlayerOne(),
-            playerTwo : this.getPlayerTwo(),
-            currentTurn : this.getCurrentTurn(),
-            rowNum : this.getRowNum(),
-            colNum : this.getColNum(),
-            gameID : this.getGameID(),
-            lastMove : this.getLastMove()
+            playerOne: this.getPlayerOne(),
+            playerTwo: this.getPlayerTwo(),
+            currentTurn: this.getCurrentTurn(),
+            rowNum: this.getRowNum(),
+            colNum: this.getColNum(),
+            gameID: this.getGameID(),
+            lastMove: this.getLastMove(),
+            gameSummary : this.getGameSummary()
         };
 
         return data;

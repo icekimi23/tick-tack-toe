@@ -83,7 +83,7 @@ let model = {
 
         let result = false;
 
-        if (!this.gameOver && this.gameBoard[row][col] === 0) {
+        if (!this.gameSummary && this.gameBoard[row][col] === 0) {
             result = true;
         }
 
@@ -193,12 +193,12 @@ let model = {
 
     // установить флаг конца игры
     endGame: function () {
-        this.gameOver = true;
+        this.gameSummary = true;
     },
 
     // снять флаг конца игры
     startGame: function () {
-        this.gameOver = false;
+        this.gameSummary = false;
     }
 };
 

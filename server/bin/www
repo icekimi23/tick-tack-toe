@@ -61,7 +61,7 @@ io.on('connection', function(socket){
     socket.on('move', function(moveData){
         let game = gamesManager.getGame(moveData.gameID);
         if (game) {
-            let result = game.makeMove(moveData.row, moveData.col);
+            let result = game.makeMove(moveData.row, moveData.col, socket.id);
             if (result === 'ok') {
                 io.to(game.getPlayerOne()).to(game.getPlayerTwo()).emit('move', game.getGameData());
             } else if (result === 'bad move') {
