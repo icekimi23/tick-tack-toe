@@ -7,6 +7,10 @@
 var app = require('../app');
 var debug = require('debug')('server:server');
 var http = require('http');
+var Game = require('../modules/game');
+var GameManager = require('../modules/games-manager');
+
+var gamesManager = new GameManager();
 
 /**
  * Get port from environment and store in Express.
@@ -33,9 +37,46 @@ var io = require('socket.io')(server);
 
 io.on('connection', function(socket){
     console.log('we have a connection!');
-    io.emit('hodor');
+
+    socket.on('find game',function(){
+        // проверить возможность создания новой игры
+        let newGameIsPossible = gamesManager.checkForNewGame();
+        if (newGameIsPossible) { // если возможно то создать новую игру
+            let playerTwoID = gamesManager.getPlayerForNewGame();
+            let game = gamesManager.startGame({
+                playerOne : socket.id,
+                playerTwo : playerTwoID
+            });
+
+            // отправляем события о начале игры только 2 игрокам
+            io.to(socket.id).to(playerTwoID).emit('game started', game.getGameData());
+
+        } else { // если нет то поставить игрока в очередь
+            gamesManager.addPlayerToQueue(socket.id);
+            io.to(socket.id).emit('looking for game');
+        }
+    });
+
+    // обработчик хода
+    socket.on('move', function(moveData){
+        let game = gamesManager.getGame(moveData.gameID);
+        if (game) {
+            let result = game.makeMove(moveData.row, moveData.col);
+            if (result === 'ok') {
+                io.to(game.getPlayerOne()).to(game.getPlayerTwo()).emit('move', game.getGameData());
+            } else if (result === 'bad move') {
+                io.to(socket.id).emit('bad move');
+            } else if (result === 'game over') {
+                io.to(game.getPlayerOne()).to(game.getPlayerTwo()).emit('game over', game.getGameData());
+            }
+        } else {
+            // TODO добавить обработку ошибки
+        }
+    });
+
     socket.on('disconnect', function(){
         console.log('user disconnected');
+        gamesManager.deletePlayerFromQueue(socket.id);
     });
 });
 

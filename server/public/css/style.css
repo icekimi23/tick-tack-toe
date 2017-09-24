@@ -8,3 +8,15 @@
     border : 1px solid #cdcdcd;
     background: #f0f0f0;
 }
+
+#find-game{
+    margin: 0px auto;
+    display: block;
+    border: none;
+    background-color: #03A9F4;
+    color: white;
+    font-size: 22px;
+    padding: 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}

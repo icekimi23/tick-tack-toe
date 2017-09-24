@@ -4,6 +4,8 @@ let view = {
     // контейнер для размещения игрового поля
     _el: document.querySelector('#tick-tack-toe'),
 
+    _findGameBtn : document.querySelector('#find-game'),
+
     // отрисовывает игровое поле
     render: function (rowNum, colNum) {
 
@@ -40,7 +42,7 @@ let view = {
         }
     },
 
-    displayResult : function (turn) {
+    displayResult: function (turn) {
         let resultEl = document.querySelector('#result-text');
 
         if (turn === 1) {
@@ -49,163 +51,40 @@ let view = {
             resultEl.innerHTML = 'Нолики победили!';
         }
 
+    },
+
+    on: function (event, handler) {
+        this._el.addEventListener(event, handler);
+    },
+
+    off: function (event, handler) {
+        this._el.removeEventListener(event, handler);
     }
 
 };
 
+// модель теперь на сервере
 let model = {
-    colNum: 3,
-    rowNum: 3,
-    cellsToWin: 3,
-    currentTurn: 1, // 1 - крестики, 2 нолики, 0 - пустое поле
-    gameBoard: [],
-    gameOver: false, // флаг окончания игры
 
-    // основная процедура хода
-    makeMove: function (row, col) {
+    gameID: null,
 
-        let result = 'ok';
-
-        if (!this.checkMovePos(row, col)) return 'bad move';
-
-        this.gameBoard[row][col] = this.currentTurn;
-
-        if (this.checkResult(row, col)) {
-            result = 'game over';
-        }
-
-        return result;
-
+    setGameID: function (id) {
+        this.gameID = id;
     },
 
-    // проверка на вохможность хода
-    checkMovePos: function (row, col) {
-
-        let result = false;
-
-        if (!this.gameOver && this.gameBoard[row][col] === 0) {
-            result = true;
-        }
-
-        return result;
-
-    },
-
-    // проверка на завершение игры
-    checkResult: function (row, col) {
-
-        // TODO вариант в основном для классической игры на поле 3 на 3, не подойдет для более сложного варианта, когда
-        // количество символов подряд для победы меньше чем длина поля (поле 10*10 играем до 5 в ряд)
-
-        let currentSymbol = this.gameBoard[row][col];
-        let gameOver = false;
-
-        if (checkHorizontal.call(this) || checkVertical.call(this) || checkDiagonal.call(this)) {
-            gameOver = true;
-            this.endGame();
-        }
-
-        return gameOver;
-
-        function checkHorizontal() {
-
-            let result = false;
-
-            result = this.gameBoard[row].every((item) => {
-                return item === currentSymbol;
-            });
-
-            return result;
-
-        }
-
-        function checkVertical() {
-
-            let result = true;
-
-            for (let i = 0; i < this.rowNum; i++) {
-                if (this.gameBoard[i][col] !== currentSymbol) {
-                    result = false;
-                    break;
-                }
-            }
-
-            return result;
-
-        }
-
-        function checkDiagonal() {
-
-            let resultTop = true; // диагональ из левого верхнего угла
-            let resultBottom = true; // диагональ из левого нижнего угла
-
-            for (let i = 0; i < this.rowNum; i++) {
-                if (this.gameBoard[i][i] !== currentSymbol) {
-                    resultTop = false;
-                    break;
-                }
-            }
-            // если нашли на одной диагонали - дальше не идем
-            if (resultTop) return resultTop;
-
-            let j = 0;
-
-            for (let i = this.rowNum - 1; i >= 0; i--) {
-                if (this.gameBoard[i][j] !== currentSymbol) {
-                    resultBottom = false;
-                    break;
-                }
-                j++;
-            }
-            return resultBottom;
-
-        }
-
-
-    },
-
-    // меняет очередность хода
-    changeTurn: function () {
-        if (this.currentTurn === 1) {
-            this.currentTurn = 2; // передаем ход ноликам
-        } else {
-            this.currentTurn = 1; // передаем ход крестикам
-        }
-    },
-
-    // инициализируем игровое поле
-    initGameBoard: function () {
-
-        this.gameBoard = [];
-
-        let arrOfCells = [];
-        for (let i = 0; i < this.colNum; i++) {
-            arrOfCells.push(0);
-        }
-
-        for (let i = 0; i < this.colNum; i++) {
-            this.gameBoard.push(arrOfCells.slice());
-        }
-
-        this.startGame();
-
-    },
-
-    // установить флаг конца игры
-    endGame: function () {
-        this.gameOver = true;
-    },
-
-    // снять флаг конца игры
-    startGame: function () {
-        this.gameOver = false;
+    getGameID: function () {
+        return this.gameID;
     }
 };
 
 let controller = {
 
     // подключаемся к серверу
-    _socket : io(),
+    _socket: io(),
+
+    trigger: function (event, data) {
+        this._socket.emit(event, data)
+    },
 
     // обработчик клика на ячейку
     onCellClick: function (event) {
@@ -218,18 +97,43 @@ let controller = {
         let row = arr[1];
         let col = arr[2];
 
-        let moveStatus = model.makeMove(row, col);
+        let moveData = {
+            gameID: model.getGameID(),
+            row: row,
+            col: col
+        };
 
-        if (moveStatus !== 'bad move') {
-            view.displayMove(row, col, model.currentTurn);
-            if (moveStatus !== 'game over') {
-                model.changeTurn();
-            } else {
-                // обрабатываем завершение игры
-                view.displayResult(model.currentTurn);
-            }
+        controller.trigger('move', moveData);
+
+        // let moveStatus = model.makeMove(row, col);
+        //
+        // if (moveStatus !== 'bad move') {
+        //     view.displayMove(row, col, model.currentTurn);
+        //     if (moveStatus !== 'game over') {
+        //         model.changeTurn();
+        //     } else {
+        //         // обрабатываем завершение игры
+        //         view.displayResult(model.currentTurn);
+        //     }
+        // }
+
+    },
+
+    // обработчик клика на кнопку поиска игры
+    onFindGameBtnClick : function(event){
+        controller.trigger('find game');
+    },
+
+    // разрешаем или запрещаем клик по ячейке в зависимости от очередности хода
+    checkMoveTurn(gameData) {
+        // разрешаем или запрещаем клик по ячейке в зависимости от очередности хода
+        if ((gameData.currentTurn === 1 && controller._socket.id === gameData.playerOne) || (gameData.currentTurn === 2 && controller._socket.id === gameData.playerTwo)) {
+            view.on('click', controller.onCellClick);
+            console.log('your turn');
+        } else {
+            view.off('click', controller.onCellClick);
+            console.log('your opponent turn');
         }
-
     }
 
 };
@@ -244,15 +148,42 @@ let controller = {
         },
 
         main: function () {
-            model.initGameBoard();
-            view.render(model.rowNum, model.colNum);
+            //model.initGameBoard();
+            //view.render(model.rowNum, model.colNum);
         },
 
         setEventHandlers: function () {
-            view._el.addEventListener('click', controller.onCellClick);
+            //view._el.addEventListener('click', controller.onCellClick);
+            view._findGameBtn.addEventListener('click',controller.onFindGameBtnClick);
 
-            controller._socket.on('hodor', ()=>{
+            controller._socket.on('hodor', () => {
                 console.log('we have recieved hodor event from the server!');
+            });
+
+            // событие начала игры
+            controller._socket.on('game started', (gameData) => {
+                console.log('game started: ', gameData);
+                model.setGameID(gameData.gameID);
+                // разрешаем или запрещаем клик по ячейке в зависимости от очередности хода
+                controller.checkMoveTurn(gameData);
+                view.render(gameData.rowNum, gameData.colNum);
+
+            });
+
+            // события совершения клика в ячейке одним из игроков
+            controller._socket.on('move', (gameData) => {
+                console.log('move: ', gameData);
+                // разрешаем или запрещаем клик по ячейке в зависимости от очередности хода
+                controller.checkMoveTurn(gameData);
+                view.displayMove(gameData.lastMove.row, gameData.lastMove.col, gameData.currentTurn);
+            });
+
+            controller._socket.on('looking for game', () => {
+                console.log('looking for game');
+            });
+            // событие окончания игры
+            controller._socket.on('game over', (gameData) => {
+                console.log('game end: ', gameData);
             });
         }
 
