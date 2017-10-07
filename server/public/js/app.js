@@ -4,7 +4,7 @@ let view = {
     // контейнер для размещения игрового поля
     _el: document.querySelector('#tick-tack-toe'),
 
-    _findGameBtn : document.querySelector('#find-game'),
+    _findGameBtn: document.querySelector('#find-game'),
 
     // отрисовывает игровое поле
     render: function (rowNum, colNum) {
@@ -32,18 +32,23 @@ let view = {
 
     },
 
+    // стирает игровое поле
+    destroy: function () {
+        this._el.innerHTML = '';
+    },
+
     // показывает кнопку поиска игры
-    showFindGameBtn: function(){
+    showFindGameBtn: function () {
         this._findGameBtn.style.display = '';
     },
 
     // скрывает кнопку поиска игры
-    hideFindGameBtn: function(){
+    hideFindGameBtn: function () {
         this._findGameBtn.style.display = 'none';
     },
 
     // меняет текст кнопки
-    setFindGameBtnText: function(text){
+    setFindGameBtnText: function (text) {
         this._findGameBtn.innerHTML = text;
     },
 
@@ -84,19 +89,14 @@ let view = {
 let model = {
 
     gameID: null,
-    gameStatus: 'not in progress', // in progress, waiting for a game, not in progress
+    state: 'not in progress',
 
-    setDefault : function () {
-        this.setGameID(null);
-        this.setGameStatus('not in progress');
+    setState: function (status) {
+        this.state = status;
     },
 
-    setGameStatus : function (status) {
-        this.gameStatus = status;
-    },
-
-    getGameStatus : function () {
-        return this.gameStatus;
+    getState: function () {
+        return this.state;
     },
 
     setGameID: function (id) {
@@ -113,6 +113,7 @@ let controller = {
     // подключаемся к серверу
     _socket: io(),
 
+    // отправка собатия серверу
     trigger: function (event, data) {
         this._socket.emit(event, data)
     },
@@ -139,22 +140,21 @@ let controller = {
     },
 
     // обработчик клика на кнопку поиска игры
-    onFindGameBtnClick : function(event){
-        let gameStatus = model.getGameStatus();
+    onFindGameBtnClick: function (event) {
+        let gameStatus = model.getState();
         // in progress, waiting for a game, not in progress
         switch (gameStatus) {
             case 'in progress':
                 controller.trigger('cancel game');
-                model.setGameStatus('not in progress');
-                model.setDefault();
-                view.setFindGameBtnText('Find a game!');
+                controller.setState('not in progress');
                 break;
             case 'waiting for a game':
                 controller.trigger('cancel search');
-                view.setFindGameBtnText('Find a game!');
+                controller.setState('not in progress');
                 break;
             case 'not in progress':
                 controller.trigger('find game');
+                controller.setState('looking for game');
                 break;
             default:
                 console.log('undefined game status');
@@ -162,7 +162,7 @@ let controller = {
     },
 
     // разрешаем или запрещаем клик по ячейке в зависимости от очередности хода
-    checkMoveTurn(gameData) {
+    checkMoveTurn: function (gameData) {
         // разрешаем или запрещаем клик по ячейке в зависимости от очередности хода
         if ((gameData.currentTurn === 1 && controller._socket.id === gameData.playerOne) || (gameData.currentTurn === 2 && controller._socket.id === gameData.playerTwo)) {
             view.on('click', controller.onCellClick);
@@ -173,7 +173,63 @@ let controller = {
         }
     },
 
-    on : function (event, handler) {
+    // согласованное(model и view) изменение состояния
+    setState: function (state, options) {
+
+        switch (state) {
+            case 'not in progress':
+                this._setNotInProgressState(state);
+                break;
+            case 'looking for game':
+                this._setLookingForAGameState(state);
+                break;
+            case 'in progress':
+                this._setInProgressState(state, options);
+                break;
+            case 'game over':
+                this._setGameOverState(state, options);
+                break;
+            case 'game aborted':
+                this._setGameAbortedState(state, options);
+                break;
+        }
+
+    },
+
+    _setNotInProgressState: function (state) {
+        view.destroy();
+        view.setFindGameBtnText('Find a game');
+        model.setState(state);
+        model.setGameID(null);
+    },
+
+    _setLookingForAGameState: function (state) {
+        view.destroy();
+        view.setFindGameBtnText('Searching for a game...');
+        model.setState(state);
+        model.setGameID(null);
+    },
+
+    _setInProgressState: function (state, options) {
+        view.render(options.rowNum, options.colNum);
+        view.setFindGameBtnText('Quit game');
+        model.setState(state);
+        model.setGameID(options.gameID);
+    },
+
+    _setGameOverState: function (state, options) {
+        view.setFindGameBtnText('Find a game');
+        model.setState(state);
+        model.setGameID(null);
+    },
+
+    _setGameAbortedState: function (state, options) {
+        view.setFindGameBtnText('Find a game');
+        model.setState(state);
+        model.setGameID(null);
+    },
+
+    on: function (event, handler) {
         this._socket.on(event, handler);
     }
 
@@ -195,17 +251,18 @@ let controller = {
 
         setEventHandlers: function () {
             //view._el.addEventListener('click', controller.onCellClick);
-            view._findGameBtn.addEventListener('click',controller.onFindGameBtnClick);
+            view._findGameBtn.addEventListener('click', controller.onFindGameBtnClick);
 
             // событие начала игры
             controller.on('game started', (gameData) => {
                 console.log('game started: ', gameData);
-                model.setGameID(gameData.gameID);
                 // разрешаем или запрещаем клик по ячейке в зависимости от очередности хода
                 controller.checkMoveTurn(gameData);
-                view.render(gameData.rowNum, gameData.colNum);
-                model.setGameStatus('in progress');
-                view.setFindGameBtnText('Quit game');
+                controller.setState('in progress', {
+                    rowNum : gameData.rowNum,
+                    colNum : gameData.colNum,
+                    gameID : gameData.gameID
+                });
             });
 
             // события совершения клика в ячейке одним из игроков
@@ -219,35 +276,26 @@ let controller = {
             // события начала поиска игры
             controller.on('looking for game', () => {
                 console.log('looking for game');
-                model.setGameStatus('waiting for a game');
-                model.setDefault();
-                view.setFindGameBtnText('Looking for a game...');
             });
             // событие окончания игры
             controller.on('game over', (gameData) => {
                 view.displayMove(gameData.lastMove.row, gameData.lastMove.col, gameData.currentTurn);
-                view.off('click',controller.onCellClick);
-                model.setGameStatus('not in progress');
-                model.setDefault();
-                view.setFindGameBtnText('Find a game!');
+                view.off('click', controller.onCellClick);
+                controller.setState('game over');
             });
 
             // событие при отключении соперника
             controller.on('opponent is disconnected', (gameData) => {
                 alert('Your opponent has been disconnected!');
-                view.off('click',controller.onCellClick);
-                model.setGameStatus('not in progress');
-                model.setDefault();
-                view.setFindGameBtnText('Find a game!');
+                view.off('click', controller.onCellClick);
+                controller.setState('game aborted');
             });
 
             // событие при отключении соперника
             controller.on('opponent canceled game', (gameData) => {
                 alert('Your opponent has canceled the game!');
-                view.off('click',controller.onCellClick);
-                model.setGameStatus('not in progress');
-                model.setDefault();
-                view.setFindGameBtnText('Find a game!');
+                view.off('click', controller.onCellClick);
+                controller.setState('game aborted');
             });
         }
 

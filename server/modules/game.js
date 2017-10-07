@@ -13,14 +13,15 @@ class Game {
         this.gameBoard = [];
         this.lastMove = null;
         this.gameSummary = ''; // кто выиграл или ничья
+        this.winnerCoords = false; // либо массив с выигрышными координатами
     }
 
-    // основная процедура хода
+    // основная процедура хода, возвращает статус хода и выигрышные координаты если они есть
     makeMove(row, col, id) {
 
         let result = 'ok';
 
-        if (!this.checkMovePos(row, col) || !this.checkMoveInTurn(id))   return 'bad move';
+        if (!this.checkMovePos(row, col) || !this.checkMoveInTurn(id)) return 'bad move';
 
         this.gameBoard[row][col] = this.currentTurn;
         this.lastMove = {
@@ -29,7 +30,9 @@ class Game {
         };
         this.changeTurn();
 
-        if (this.checkResult(row, col)) {
+        let winnerCoords = this.checkResult(row, col);
+
+        if (winnerCoords) {
             result = 'game over';
         }
 
@@ -51,14 +54,14 @@ class Game {
     }
 
     // проверка не нарушает ли ход очередность ходов (быстрый клик и т.д.)
-    checkMoveInTurn(id){
+    checkMoveInTurn(id) {
 
         let result = false;
         let currentTurn = this.getCurrentTurn();
         let PlayerOneID = this.getPlayerOne();
         let PlayerTwoID = this.getPlayerTwo();
 
-        if ((currentTurn === 1 && id === PlayerOneID) || (currentTurn === 2 && id === PlayerTwoID)){
+        if ((currentTurn === 1 && id === PlayerOneID) || (currentTurn === 2 && id === PlayerTwoID)) {
             // очередность хода соблюдается
             result = true;
         }
@@ -72,17 +75,18 @@ class Game {
         // количество символов подряд для победы меньше чем длина поля (поле 10*10 играем до 5 в ряд)
 
         let currentSymbol = this.gameBoard[row][col];
-        let gameOver = false;
+        let winnerCoord = false;
 
-        if (checkHorizontal.call(this) || checkVertical.call(this) || checkDiagonal.call(this)) {
-            gameOver = true;
-            this.endGame(currentSymbol);
+        // тут либо массив с выигрышными координатами, либо false
+        winnerCoord = checkHorizontal.call(this) || checkVertical.call(this) || checkDiagonal.call(this);
+
+        if (winnerCoord) {
+            this.endGame(currentSymbol, winnerCoord);
         } else if (checkEmtyCells.call(this)) {
-            gameOver = true;
             this.endGame('draw');
         }
 
-        return gameOver;
+        return winnerCoord;
 
         // проверка на ничью
         function checkEmtyCells() {
@@ -104,6 +108,14 @@ class Game {
                 return item === currentSymbol;
             });
 
+            if (result) {
+                let winnerCoords = [];
+                for (let col = 0; col < this.colNum; col++) {
+                    winnerCoords.push([row, col])
+                }
+                result = winnerCoords;
+            }
+
             return result;
 
         }
@@ -111,13 +123,18 @@ class Game {
         function checkVertical() {
 
             let result = true;
+            let winnerCoords = [];
 
             for (let i = 0; i < this.rowNum; i++) {
                 if (this.gameBoard[i][col] !== currentSymbol) {
                     result = false;
                     break;
+                } else {
+                    winnerCoords.push([i,col]);
                 }
             }
+
+            if (result) result = winnerCoords;
 
             return result;
 
@@ -127,25 +144,36 @@ class Game {
 
             let resultTop = true; // диагональ из левого верхнего угла
             let resultBottom = true; // диагональ из левого нижнего угла
+            let winnerCoords = [];
 
             for (let i = 0; i < this.rowNum; i++) {
                 if (this.gameBoard[i][i] !== currentSymbol) {
                     resultTop = false;
                     break;
+                } else {
+                    winnerCoords.push([i,i]);
                 }
             }
             // если нашли на одной диагонали - дальше не идем
-            if (resultTop) return resultTop;
+            if (resultTop) {
+                resultTop = winnerCoords;
+                return resultTop;
+            }
+
 
             let j = 0;
+            winnerCoords = [];
 
             for (let i = this.rowNum - 1; i >= 0; i--) {
                 if (this.gameBoard[i][j] !== currentSymbol) {
                     resultBottom = false;
                     break;
+                } else {
+                    winnerCoords.push([i,j]);
                 }
                 j++;
             }
+            if (resultBottom) resultBottom = winnerCoords;
             return resultBottom;
 
         }
@@ -181,11 +209,13 @@ class Game {
     }
 
     // установить состояние конца игры (допустимые значения 1,2 или draw)
-    endGame(result) {
+    endGame(result, winnerCoord) {
         if (result == 1) {
             this.gameSummary = 'Player One Win';
+            this.winnerCoords = winnerCoord;
         } else if (result == 2) {
             this.gameSummary = 'Player Two Win';
+            this.winnerCoords = winnerCoord;
         } else {
             this.gameSummary = result;
         }
@@ -229,6 +259,10 @@ class Game {
         return this.colNum;
     }
 
+    getWinnerCoords() {
+        return this.winnerCoords;
+    }
+
     // сформировать данные для клиентов
     getGameData() {
         let data = {
@@ -239,7 +273,8 @@ class Game {
             colNum: this.getColNum(),
             gameID: this.getGameID(),
             lastMove: this.getLastMove(),
-            gameSummary : this.getGameSummary()
+            gameSummary: this.getGameSummary(),
+            winnerCoords: this.getWinnerCoords()
         };
 
         return data;
