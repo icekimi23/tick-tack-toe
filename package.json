@@ -21,6 +21,7 @@
     "mocha": "^3.5.3"
   },
   "dependencies": {
-    "express": "^4.15.4"
+    "express": "^4.15.4",
+    "svg.js": "^2.6.3"
   }
 }

@@ -17,6 +17,7 @@ class GamesManager{
      */
     checkForNewGame() {
         let result = false;
+        // в очереди есть игроки, поэтому возможно создать игру
         if (this.queue.length) result = true;
         return result;
     }
@@ -25,7 +26,9 @@ class GamesManager{
      * Получает игрока для новой игры
      */
     getPlayerForNewGame(){
+        // берем првого игрока из очереди
         let id = this.queue[0];
+        // и удаляем его из очереди
         this.deletePlayerFromQueue(id);
         return id;
     }
@@ -76,6 +79,22 @@ class GamesManager{
      */
     getGame(id){
         return this.games[id];
+    }
+
+    /**
+     * Находим активную игру, в которой участвует игрок с данным id
+     * @param id
+     */
+    getGameByPlayerID(id){
+        for (let gameId in this.games){
+            let game = this.games[gameId];
+            let playerOneID = game.getPlayerOne();
+            let playerTwoID = game.getPlayerTwo();
+            if (id === playerOneID || id === playerTwoID){
+                return game;
+            }
+        }
+        return null;
     }
 
     /**

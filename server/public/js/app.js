@@ -32,6 +32,21 @@ let view = {
 
     },
 
+    // показывает кнопку поиска игры
+    showFindGameBtn: function(){
+        this._findGameBtn.style.display = '';
+    },
+
+    // скрывает кнопку поиска игры
+    hideFindGameBtn: function(){
+        this._findGameBtn.style.display = 'none';
+    },
+
+    // меняет текст кнопки
+    setFindGameBtnText: function(text){
+        this._findGameBtn.innerHTML = text;
+    },
+
     // отображает ход крестиков или ноликов в зависимости от параметра turn
     displayMove: function (row, col, turn) {
         let id = 'cell-' + row + '-' + col;
@@ -69,6 +84,20 @@ let view = {
 let model = {
 
     gameID: null,
+    gameStatus: 'not in progress', // in progress, waiting for a game, not in progress
+
+    setDefault : function () {
+        this.setGameID(null);
+        this.setGameStatus('not in progress');
+    },
+
+    setGameStatus : function (status) {
+        this.gameStatus = status;
+    },
+
+    getGameStatus : function () {
+        return this.gameStatus;
+    },
 
     setGameID: function (id) {
         this.gameID = id;
@@ -111,7 +140,25 @@ let controller = {
 
     // обработчик клика на кнопку поиска игры
     onFindGameBtnClick : function(event){
-        controller.trigger('find game');
+        let gameStatus = model.getGameStatus();
+        // in progress, waiting for a game, not in progress
+        switch (gameStatus) {
+            case 'in progress':
+                controller.trigger('cancel game');
+                model.setGameStatus('not in progress');
+                model.setDefault();
+                view.setFindGameBtnText('Find a game!');
+                break;
+            case 'waiting for a game':
+                controller.trigger('cancel search');
+                view.setFindGameBtnText('Find a game!');
+                break;
+            case 'not in progress':
+                controller.trigger('find game');
+                break;
+            default:
+                console.log('undefined game status');
+        }
     },
 
     // разрешаем или запрещаем клик по ячейке в зависимости от очередности хода
@@ -124,6 +171,10 @@ let controller = {
             view.off('click', controller.onCellClick);
             console.log('your opponent turn');
         }
+    },
+
+    on : function (event, handler) {
+        this._socket.on(event, handler);
     }
 
 };
@@ -146,35 +197,57 @@ let controller = {
             //view._el.addEventListener('click', controller.onCellClick);
             view._findGameBtn.addEventListener('click',controller.onFindGameBtnClick);
 
-            controller._socket.on('hodor', () => {
-                console.log('we have recieved hodor event from the server!');
-            });
-
             // событие начала игры
-            controller._socket.on('game started', (gameData) => {
+            controller.on('game started', (gameData) => {
                 console.log('game started: ', gameData);
                 model.setGameID(gameData.gameID);
                 // разрешаем или запрещаем клик по ячейке в зависимости от очередности хода
                 controller.checkMoveTurn(gameData);
                 view.render(gameData.rowNum, gameData.colNum);
-
+                model.setGameStatus('in progress');
+                view.setFindGameBtnText('Quit game');
             });
 
             // события совершения клика в ячейке одним из игроков
-            controller._socket.on('move', (gameData) => {
+            controller.on('move', (gameData) => {
                 console.log('move: ', gameData);
                 // разрешаем или запрещаем клик по ячейке в зависимости от очередности хода
                 controller.checkMoveTurn(gameData);
                 view.displayMove(gameData.lastMove.row, gameData.lastMove.col, gameData.currentTurn);
             });
 
-            controller._socket.on('looking for game', () => {
+            // события начала поиска игры
+            controller.on('looking for game', () => {
                 console.log('looking for game');
+                model.setGameStatus('waiting for a game');
+                model.setDefault();
+                view.setFindGameBtnText('Looking for a game...');
             });
             // событие окончания игры
-            controller._socket.on('game over', (gameData) => {
+            controller.on('game over', (gameData) => {
                 view.displayMove(gameData.lastMove.row, gameData.lastMove.col, gameData.currentTurn);
-                view.off('click',controller.onCellClick)
+                view.off('click',controller.onCellClick);
+                model.setGameStatus('not in progress');
+                model.setDefault();
+                view.setFindGameBtnText('Find a game!');
+            });
+
+            // событие при отключении соперника
+            controller.on('opponent is disconnected', (gameData) => {
+                alert('Your opponent has been disconnected!');
+                view.off('click',controller.onCellClick);
+                model.setGameStatus('not in progress');
+                model.setDefault();
+                view.setFindGameBtnText('Find a game!');
+            });
+
+            // событие при отключении соперника
+            controller.on('opponent canceled game', (gameData) => {
+                alert('Your opponent has canceled the game!');
+                view.off('click',controller.onCellClick);
+                model.setGameStatus('not in progress');
+                model.setDefault();
+                view.setFindGameBtnText('Find a game!');
             });
         }
 
