@@ -11,8 +11,17 @@ let view = {
 
         this._el.innerHTML = '';
 
+
+        let div = document.createElement('div');
+        div.className = 'table-wrapper';
+
         let table = document.createElement('table');
         table.id = 'game-board';
+        div.appendChild(table);
+
+        let resultDiv = document.createElement('div');
+        resultDiv.className = 'result-data';
+        div.appendChild(resultDiv);
 
         for (let i = 0; i < rowNum; i++) {
 
@@ -28,7 +37,7 @@ let view = {
 
         }
 
-        this._el.appendChild(table);
+        this._el.appendChild(div);
 
     },
 
@@ -65,13 +74,15 @@ let view = {
     },
 
     displayResult: function (turn) {
-        let resultEl = document.querySelector('#result-text');
 
-        if (turn === 1) {
-            resultEl.innerHTML = 'Крестики победили!';
-        } else {
-            resultEl.innerHTML = 'Нолики победили!';
-        }
+        let animateToBJ = document.querySelector('.result-data');
+        animateToBJ.classList.toggle('active');
+        animateToBJ.addEventListener('transitionend', (event) => {
+            // так как событие будет срабатывать на все свойства, а нам важно только любое одно
+            if (event.propertyName === 'width') {
+                //showWinnerText();
+            }
+        });
 
     },
 
@@ -156,6 +167,14 @@ let controller = {
                 controller.trigger('find game');
                 controller.setState('looking for game');
                 break;
+            case 'game over':
+                controller.trigger('find game');
+                controller.setState('looking for game');
+                break;
+            case 'game aborted':
+                controller.trigger('find game');
+                controller.setState('looking for game');
+                break;
             default:
                 console.log('undefined game status');
         }
@@ -204,7 +223,6 @@ let controller = {
     },
 
     _setLookingForAGameState: function (state) {
-        view.destroy();
         view.setFindGameBtnText('Searching for a game...');
         model.setState(state);
         model.setGameID(null);
@@ -218,6 +236,7 @@ let controller = {
     },
 
     _setGameOverState: function (state, options) {
+        view.displayResult();
         view.setFindGameBtnText('Find a game');
         model.setState(state);
         model.setGameID(null);
@@ -280,7 +299,7 @@ let controller = {
             // событие окончания игры
             controller.on('game over', (gameData) => {
                 view.displayMove(gameData.lastMove.row, gameData.lastMove.col, gameData.currentTurn);
-                view.off('click', controller.onCellClick);
+                //view.off('click', controller.onCellClick);
                 controller.setState('game over');
             });
 
