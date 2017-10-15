@@ -1,7 +1,6 @@
 .table-wrapper {
-    margin: 10px auto;
-    width: 400px;
-    height: 400px;
+    margin: 40px auto;
+    width: 296px;
     position : relative;
 }
 
@@ -11,7 +10,7 @@
     left : 50%;
     width : 0%;
     height : 0%;
-    background-color : rgba(3, 141, 182, 0.95);
+    background-color : rgba(63, 132, 210, 0.9);
 }
 
 .result-data.active{
@@ -26,25 +25,106 @@
     transition: all 1s ease-out 0.5s;
 }
 
-#game-board {
-    margin: 10px auto;
-    width: 400px;
-    height: 400px;
-}
-
-#game-board td{
-    border : 1px solid #cdcdcd;
-    background: #f0f0f0;
-}
-
 #find-game{
     margin: 0px auto;
     display: block;
     border: none;
-    background-color: #03A9F4;
+    background-color: #3f84d2;
     color: white;
     font-size: 22px;
     padding: 15px;
-    border-radius: 5px;
+    /*border-radius: 5px;*/
     cursor: pointer;
+    -webkit-transition: all 0.3s ease-out;
+    -moz-transition: all 0.3s ease-out;
+    -ms-transition: all 0.3s ease-out;
+    -o-transition: all 0.3s ease-out;
+    transition: all 0.3s ease-out;
+}
+
+#find-game:hover{
+    border-radius: 10px;
+    -webkit-transition: all 0.3s ease-out;
+    -moz-transition: all 0.3s ease-out;
+    -ms-transition: all 0.3s ease-out;
+    -o-transition: all 0.3s ease-out;
+    transition: all 0.3s ease-out;
+}
+
+button:focus{
+    outline: none;
+}
+
+#game-board {
+    background-color: white;
+    border-spacing: 5px;
+    margin: 0px auto;
+}
+
+td {
+    width: 96px;
+    height: 96px;
+    background: #42A4F5;
+    -webkit-transition: background 0.35s;
+    cursor: pointer;
+    position: relative;
+    vertical-align: top;
+}
+
+td:hover {
+    background: #3f84d2;
+    -webkit-transition: background 0.35s;
+    -moz-transition: background 0.35s;
+    -ms-transition: background 0.35s;
+    -o-transition: background 0.35s;
+    transition: background 0.35s;
+}
+
+svg {
+    width: 0px;
+    height: 0px;
+    position: absolute;
+}
+
+.circle {
+    fill: none;
+    stroke-width: 8px;
+    stroke: #35F6A8;
+    stroke-dasharray: 301.635;
+    stroke-dashoffset: 301.635;
+}
+
+.cross {
+    fill: none;
+    stroke-width: 8px;
+    stroke: #5552F7;
+    stroke-dasharray: 135.764;
+    stroke-dashoffset: 135.764;
+}
+
+/* начало рисования, задаем width и height вместо изменения display*/
+.drawn {
+    width: 96px;
+    height: 96px;
+}
+
+/* рисуем круг */
+.drawn.circle {
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 0.45s ease-out;
+    -webkit-transition: stroke-dashoffset 0.45s ease-out;
+}
+
+/* рисуем первую линию крестика */
+.drawn .first-line {
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 0.45s ease-out;
+    -webkit-transition: stroke-dashoffset 0.45s ease-out;
+}
+
+/* рисуем вторую линию крестика с небольшой задержкой */
+.drawn .second-line {
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 0.3s ease-out 0.15s;
+    -webkit-transition: stroke-dashoffset 0.3s ease-out 0.15s;
 }

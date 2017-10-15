@@ -30,6 +30,13 @@ let view = {
             for (let j = 0; j < colNum; j++) {
                 let td = document.createElement('td');
                 td.id = 'cell-' + i + '-' + j;
+                td.innerHTML = `<svg class="cross" width="96" height="96" viewBox="4 0 128 128">
+                                    <path class="first-line" d="M16,16L112,112"></path>
+                                    <path class="second-line" d="M112,16L16,112"></path>
+                                </svg>
+                                <svg class="circle" width="96" height="96" viewBox="4 0 128 128">
+                                    <path d="M64,16A48,48 0 1,0 64,112A48,48 0 1,0 64,16"></path>
+                                </svg>`;
                 tr.appendChild(td);
             }
 
@@ -67,9 +74,11 @@ let view = {
         let cell = this._el.querySelector('#' + id);
 
         if (turn === 1) {
-            cell.style.background = 'red';
+            let circle = cell.querySelector('.circle');
+            circle.classList.add('drawn');
         } else {
-            cell.style.background = 'blue';
+            let cross = cell.querySelector('.cross');
+            cross.classList.add('drawn');
         }
     },
 
@@ -131,7 +140,6 @@ let controller = {
 
     // обработчик клика на ячейку
     onCellClick: function (event) {
-
         let target = event.target.closest('td');
 
         if (target.tagName !== 'TD') return;

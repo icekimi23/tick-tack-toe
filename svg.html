@@ -2,22 +2,164 @@
 <html>
 <head>
     <title>SVG.js</title>
-    <script src = "client/js/svg.js"></script>
+    <script src="client/js/svg.js"></script>
+    <script src="circle.js"></script>
 </head>
+
+<style>
+
+    table {
+
+    }
+
+    td {
+        border: 1px solid #cdcdcd;
+        background: #f0f0f0;
+    }
+
+    .svg-path{
+        fill : none;
+        stroke-width: 6px;
+        stroke: blue;
+        stroke-dasharray: 301.635;
+        stroke-dashoffset: 301.635;
+    }
+
+    .svg-path.draw-circle{
+        stroke-dashoffset : 0;
+        transition: stroke-dashoffset 0.85s;
+        -webkit-transition: stroke-dashoffset 0.85s;
+        /*stroke-dasharray: 301.635;*/
+        /*stroke-dashoffset: 301.635;*/
+        /*animation: dash 1s linear;*/
+    }
+
+    /*@keyframes dash {*/
+        /*from {*/
+            /*stroke-dashoffset: 301.635;*/
+        /*}*/
+        /*to {*/
+            /*stroke-dashoffset: 0;*/
+        /*}*/
+    /*}*/
+
+
+</style>
+
 <body>
-<div id="drawing"></div>
+
+<div id="drawing">
+
+</div>
+
+
+
+
+<table style="width : 200px; height : 100px">
+    <tr>
+        <td id="first">
+            <svg width = "97" height = "97" viewBox="0 0 128 128">
+                <path class = "svg-path" d="M64,16A48,48 0 1,0 64,112A48,48 0 1,0 64,16"></path>
+            </svg>
+            <svg width = "97" height = "97" viewBox="0 0 128 128">
+                <path d="M16,16L112,112" style="stroke: rgb(84, 84, 84); stroke-dasharray: 135.764; stroke-dashoffset: 0;"></path>
+                <path d="M112,16L16,112" style="stroke: rgb(84, 84, 84); stroke-dasharray: 135.764; stroke-dashoffset: 0;"></path>
+            </svg>
+        </td>
+        <td id="second">
+            <svg width = "97" height = "97" viewBox="0 0 128 128">
+                <path class = "svg-path" d="M64,16A48,48 0 1,0 64,112A48,48 0 1,0 64,16"></path>
+            </svg>
+        </td>
+    </tr>
+
+</table>
+
+<path d="M16,16L112,112" style="stroke: rgb(84, 84, 84); stroke-dasharray: 135.764; stroke-dashoffset: 0;"></path>
+<path d="M112,16L16,112" style="stroke: rgb(84, 84, 84); stroke-dasharray: 135.764; stroke-dashoffset: 0;"></path>
+
 
 <script>
 
-    var draw = SVG('drawing').size(300, 300);
-    var line1 = draw.line(0, 0, 0, 0).move(20, 20);
-    line1.stroke({ color: '#8ec7ff', width: 10, linecap: 'round' });
+//    let tdElems = document.querySelectorAll('td');
+//    let drawsCollection = {};
+//
+//    for (let i = 0; i < tdElems.length; i++) {
+//        var draw = SVG(tdElems[i]).size(97, 97);
+//        drawsCollection[tdElems[i].id] = draw;
+//    }
+//    let table = document.querySelector('table');
+//    table.addEventListener('click', function (event) {
+//        let target = event.target.closest('td');
+//        if (target) {
+//            let draw = drawsCollection[target.id];
+//            var line1 = draw.line(0, 0, 0, 0).move(5, 5);
+//            line1.stroke({color: '#8ec7ff', width: 10, linecap: 'round'});
+//            line1.animate(300).attr('x2', 92).attr('y2', 92).queue(() => {
+//                var line2 = draw.line(92, 5, 92, 5);
+//                line2.stroke({color: '#8ec7ff', width: 10, linecap: 'round'});
+//                line2.animate(300, null).attr('x2', 5).attr('y2', 92);
+//            });
+//        }
+//    });
 
-    var line2 = draw.line(120, 20, 120, 20);
-    line2.stroke({ color: '#8ec7ff', width: 10, linecap: 'round' });
 
-    line1.animate(600).attr('x2',120).attr('y2',120);
-    line2.animate(600,null,400).attr('x2',20).attr('y2',120);
+    /* Как анимровать рисование окружности, либо вообще любого контура
+       1) Вычислить длину элемента path, например так
+           var path = document.querySelector('.path');
+           var length = path.getTotalLength()и stroke-dashoffset
+       2) Задать параметрам stroke-dasharray и stroke-dashoffset значение равное длине path
+       3) Изменять значение stroke-dashoffset до 0
+    */
+
+
+    //    window.onclick = function (event) {
+    //        let target = event.target;
+    //        if (target.tagName === 'TD') {
+    //            var draw = SVG(target).size(97, 97);
+    //        }
+    //
+    //    }
+
+    //    window.onclick = function () {
+    ////        var draw = SVG('drawing').size(300, 300);
+    ////
+    ////        var line1 = draw.line(0, 0, 0, 0).move(20, 20);
+    ////        line1.stroke({color: '#8ec7ff', width: 10, linecap: 'round'});
+    ////        line1.animate(600).attr('x2', 120).attr('y2', 120);
+    ////
+    ////        setTimeout(() => {
+    ////            var line2 = draw.line(120, 20, 120, 20);
+    ////            line2.stroke({color: '#8ec7ff', width: 10, linecap: 'round'});
+    ////            line2.animate(600, null).attr('x2', 20).attr('y2', 120);
+    ////        }, 625);
+    //
+    //        var draw = SVG('drawing').size(300, 300);
+    //
+    //        var line1 = draw.line(0, 0, 0, 0).move(20, 20);
+    //        line1.stroke({color: '#8ec7ff', width: 10, linecap: 'round'});
+    //        line1.animate(600).attr('x2', 120).attr('y2', 120).queue(() => {
+    //            var line2 = draw.line(120, 20, 120, 20);
+    //            line2.stroke({color: '#8ec7ff', width: 10, linecap: 'round'});
+    //            line2.animate(600, null).attr('x2', 20).attr('y2', 120);
+    //        });
+    //
+    //    };
+    //
+    //    var draw = SVG('drawing').size(500, 500);
+    //    //draw.path('M0 0 H50 A20 20 0 1 0 100 50 v25 C50 125 0 85 0 85 z');
+    //    var path = draw.path('M150 0 C300 0 300 300 150 300');
+    //    path.fill('none').move(20, 20)
+    //    path.stroke({ color: '#f06', width: 4, linecap: 'round', linejoin: 'round' })
+
+
+    //    rect.animate({ease: '<', delay: '1.5s'}).attr({fill: '#f03'}).queue(function () {
+    //
+    //        this.target().fill('#000')
+    //        this.dequeue() // dont forget to call dequeue when the queue should continue running
+    //
+    //    }).animate().dmove(50, 50)
+
 
 </script>
 
