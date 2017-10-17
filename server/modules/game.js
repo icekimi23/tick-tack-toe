@@ -12,7 +12,7 @@ class Game {
         this.currentTurn = 1; // 1 - крестики, 2 нолики, 0 - пустое поле
         this.gameBoard = [];
         this.lastMove = null;
-        this.gameSummary = ''; // кто выиграл или ничья
+        this.winnerID = ''; // кто выиграл или ничья
         this.winnerCoords = false; // либо массив с выигрышными координатами
     }
 
@@ -45,7 +45,7 @@ class Game {
 
         let result = false;
 
-        if (!this.gameSummary && this.gameBoard[row][col] === 0) {
+        if (!this.winnerID && this.gameBoard[row][col] === 0) {
             result = true;
         }
 
@@ -83,6 +83,8 @@ class Game {
         if (winnerCoord) {
             this.endGame(currentSymbol, winnerCoord);
         } else if (checkEmtyCells.call(this)) {
+            // TODO ужас!!! заьыл про ничью поэтому такой некрасивый костыль
+            winnerCoord = [];
             this.endGame('draw');
         }
 
@@ -211,20 +213,19 @@ class Game {
     // установить состояние конца игры (допустимые значения 1,2 или draw)
     endGame(result, winnerCoord) {
         if (result == 1) {
-            this.gameSummary = 'Player One Win';
+            this.winnerID = this.getPlayerOne();
             this.winnerCoords = winnerCoord;
         } else if (result == 2) {
-            this.gameSummary = 'Player Two Win';
+            this.winnerID = this.getPlayerTwo();
             this.winnerCoords = winnerCoord;
         } else {
-            this.gameSummary = result;
+            this.winnerID = 'draw';
         }
-
     }
 
     // снять флаг конца игры
     startGame() {
-        this.gameSummary = '';
+        this.winnerID = '';
     }
 
     getPlayerOne() {
@@ -247,8 +248,8 @@ class Game {
         return this.lastMove;
     }
 
-    getGameSummary() {
-        return this.gameSummary;
+    getWinnerID() {
+        return this.winnerID;
     }
 
     getRowNum() {
@@ -273,7 +274,7 @@ class Game {
             colNum: this.getColNum(),
             gameID: this.getGameID(),
             lastMove: this.getLastMove(),
-            gameSummary: this.getGameSummary(),
+            winnerID: this.getWinnerID(),
             winnerCoords: this.getWinnerCoords()
         };
 

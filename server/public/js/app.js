@@ -21,6 +21,10 @@ let view = {
 
         let resultDiv = document.createElement('div');
         resultDiv.className = 'result-data';
+        let winnerText = document.createElement('div');
+        winnerText.className = 'winner-text';
+        resultDiv.appendChild(winnerText);
+
         div.appendChild(resultDiv);
 
         for (let i = 0; i < rowNum; i++) {
@@ -82,17 +86,23 @@ let view = {
         }
     },
 
-    displayResult: function (turn) {
+    displayResult: function (resultText) {
 
         let animateToBJ = document.querySelector('.result-data');
         animateToBJ.classList.toggle('active');
         animateToBJ.addEventListener('transitionend', (event) => {
             // так как событие будет срабатывать на все свойства, а нам важно только любое одно
             if (event.propertyName === 'width') {
-                //showWinnerText();
+                this._showWinnerText(resultText);
             }
         });
 
+    },
+
+    _showWinnerText : function (text) {
+        let winnerTextEl = this._el.querySelector('.winner-text');
+        winnerTextEl.innerHTML = text;
+        winnerTextEl.classList.add('showed');
     },
 
     on: function (event, handler) {
@@ -244,7 +254,8 @@ let controller = {
     },
 
     _setGameOverState: function (state, options) {
-        view.displayResult();
+        let resultText = this._getResultText(options);
+        view.displayResult(resultText);
         view.setFindGameBtnText('Find a game');
         model.setState(state);
         model.setGameID(null);
@@ -254,6 +265,18 @@ let controller = {
         view.setFindGameBtnText('Find a game');
         model.setState(state);
         model.setGameID(null);
+    },
+
+    _getResultText(options){
+        let resultText = '';
+        if (options.winnerID === 'draw'){
+            resultText = 'Draw!';
+        } else if (options.winnerID === this._socket.id){
+            resultText = 'You win:)';
+        } else {
+            resultText = 'You lost:(';
+        }
+        return resultText;
     },
 
     on: function (event, handler) {
@@ -308,7 +331,7 @@ let controller = {
             controller.on('game over', (gameData) => {
                 view.displayMove(gameData.lastMove.row, gameData.lastMove.col, gameData.currentTurn);
                 //view.off('click', controller.onCellClick);
-                controller.setState('game over');
+                controller.setState('game over', gameData);
             });
 
             // событие при отключении соперника
