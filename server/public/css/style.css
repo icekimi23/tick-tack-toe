@@ -27,6 +27,13 @@
     transition: all 1s ease-out 0.5s;
 }
 
+.turn-text{
+    text-align: center;
+    font-size: 30px;
+    color : #3F84D2;
+    margin: 30px;
+}
+
 #find-game{
     margin: 0px auto;
     display: block;

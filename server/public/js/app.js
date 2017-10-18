@@ -11,13 +11,16 @@ let view = {
 
         this._el.innerHTML = '';
 
+        let turnText = document.createElement('div');
+        turnText.className = 'turn-text';
+        this._el.appendChild(turnText);
 
-        let div = document.createElement('div');
-        div.className = 'table-wrapper';
+        let wrapperDiv = document.createElement('div');
+        wrapperDiv.className = 'table-wrapper';
 
         let table = document.createElement('table');
         table.id = 'game-board';
-        div.appendChild(table);
+        wrapperDiv.appendChild(table);
 
         let resultDiv = document.createElement('div');
         resultDiv.className = 'result-data';
@@ -25,7 +28,7 @@ let view = {
         winnerText.className = 'winner-text';
         resultDiv.appendChild(winnerText);
 
-        div.appendChild(resultDiv);
+        wrapperDiv.appendChild(resultDiv);
 
         for (let i = 0; i < rowNum; i++) {
 
@@ -48,7 +51,7 @@ let view = {
 
         }
 
-        this._el.appendChild(div);
+        this._el.appendChild(wrapperDiv);
 
     },
 
@@ -99,7 +102,12 @@ let view = {
 
     },
 
-    _showWinnerText : function (text) {
+    setTurnText: function (text) {
+        let turnText = this._el.querySelector('.turn-text');
+        turnText.innerHTML = text;
+    },
+
+    _showWinnerText: function (text) {
         let winnerTextEl = this._el.querySelector('.winner-text');
         winnerTextEl.innerHTML = text;
         winnerTextEl.classList.add('showed');
@@ -203,10 +211,10 @@ let controller = {
         // разрешаем или запрещаем клик по ячейке в зависимости от очередности хода
         if ((gameData.currentTurn === 1 && controller._socket.id === gameData.playerOne) || (gameData.currentTurn === 2 && controller._socket.id === gameData.playerTwo)) {
             view.on('click', controller.onCellClick);
-            console.log('your turn');
+            view.setTurnText('Your turn');
         } else {
             view.off('click', controller.onCellClick);
-            console.log('your opponent turn');
+            view.setTurnText('Your opponent\'s turn');
         }
     },
 
@@ -257,24 +265,27 @@ let controller = {
         let resultText = this._getResultText(options);
         view.displayResult(resultText);
         view.setFindGameBtnText('Find a game');
+        view.setTurnText('Game over');
         model.setState(state);
         model.setGameID(null);
     },
 
     _setGameAbortedState: function (state, options) {
         view.setFindGameBtnText('Find a game');
+        view.displayResult(':(');
+        view.setTurnText('Game has been aborted:(');
         model.setState(state);
         model.setGameID(null);
     },
 
-    _getResultText(options){
+    _getResultText(options) {
         let resultText = '';
-        if (options.winnerID === 'draw'){
+        if (options.winnerID === 'draw') {
             resultText = 'Draw!';
-        } else if (options.winnerID === this._socket.id){
+        } else if (options.winnerID === this._socket.id) {
             resultText = 'You win:)';
         } else {
-            resultText = 'You lost:(';
+            resultText = 'You lose:(';
         }
         return resultText;
     },
@@ -306,13 +317,13 @@ let controller = {
             // событие начала игры
             controller.on('game started', (gameData) => {
                 console.log('game started: ', gameData);
+                controller.setState('in progress', {
+                    rowNum: gameData.rowNum,
+                    colNum: gameData.colNum,
+                    gameID: gameData.gameID
+                });
                 // разрешаем или запрещаем клик по ячейке в зависимости от очередности хода
                 controller.checkMoveTurn(gameData);
-                controller.setState('in progress', {
-                    rowNum : gameData.rowNum,
-                    colNum : gameData.colNum,
-                    gameID : gameData.gameID
-                });
             });
 
             // события совершения клика в ячейке одним из игроков
