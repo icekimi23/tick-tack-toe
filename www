@@ -4,11 +4,11 @@
  * Module dependencies.
  */
 
-var app = require('../app');
+var app = require('./server/app');
 var debug = require('debug')('server:server');
 var http = require('http');
-var Game = require('../modules/game');
-var GameManager = require('../modules/games-manager');
+var Game = require('./server/modules/game');
+var GameManager = require('./server/modules/games-manager');
 
 var gamesManager = new GameManager();
 
