@@ -1,4 +1,4 @@
-class View{
+export default class View{
     constructor(){
         // контейнер для размещения игрового поля
         this._el = document.querySelector('#tick-tack-toe');
