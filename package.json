@@ -1,27 +1,27 @@
 {
-  "name": "tick-tack-toe",
+  "name": "tic-tac-toe",
   "version": "0.0.1",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "description": "An implementation of tic-tac-toe game for practice and fun:)",
+  "engines": {
+    "node": "6.11.1"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./server/bin/www"
+  },
+  "dependencies": {
+    "body-parser": "~1.17.1",
+    "cookie-parser": "~1.4.3",
+    "debug": "~2.6.3",
+    "ejs": "~2.5.6",
+    "express": "~4.15.2",
+    "morgan": "~1.8.1",
+    "serve-favicon": "~2.4.2",
+    "socket.io": "^2.0.3",
+    "uuid": "^3.1.0"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/icekimi23/tick-tack-toe.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/icekimi23/tick-tack-toe/issues"
-  },
-  "homepage": "https://github.com/icekimi23/tick-tack-toe#readme",
-  "devDependencies": {
-    "chai": "^4.1.2",
-    "mocha": "^3.5.3"
-  },
-  "dependencies": {
-    "express": "^4.15.4",
-    "svg.js": "^2.6.3"
+    "url": "https://github.com/icekimi23/tick-tack-toe"
   }
 }
