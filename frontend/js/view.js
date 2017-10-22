@@ -76,14 +76,14 @@ export default class View{
     }
 
     // отображает ход крестиков или ноликов в зависимости от параметра turn
-    displayMove(row, col, turn) {
+    displayMove(row, col, figure) {
         let id = 'cell-' + row + '-' + col;
         let cell = this._el.querySelector('#' + id);
 
-        if (turn === 1) {
+        if (figure === 'circle') {
             let circle = cell.querySelector('.circle');
             circle.classList.add('drawn');
-        } else {
+        } else if (figure === 'cross'){
             let cross = cell.querySelector('.cross');
             cross.classList.add('drawn');
         }

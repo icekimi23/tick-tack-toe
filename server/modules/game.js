@@ -14,6 +14,7 @@ class Game {
         this.lastMove = null;
         this.winnerID = ''; // кто выиграл или ничья
         this.winnerCoords = false; // либо массив с выигрышными координатами
+        this.lastMovePlayerID = '';
     }
 
     // основная процедура хода, возвращает статус хода и выигрышные координаты если они есть
@@ -223,6 +224,14 @@ class Game {
         }
     }
 
+    getOpponentID(id){
+        let opponentID = '';
+        let playerOneID = this.getPlayerOne();
+        let playerTwoID = this.getPlayerTwo();
+        opponentID = (playerOneID === id) ? playerTwoID : playerOneID;
+        return opponentID;
+    }
+
     // снять флаг конца игры
     startGame() {
         this.winnerID = '';
@@ -264,6 +273,14 @@ class Game {
         return this.winnerCoords;
     }
 
+    getLastMovePlayerID(){
+        return this.lastMovePlayerID;
+    }
+
+    setLastMovePlayerID(id){
+        this.lastMovePlayerID = id;
+    }
+
     // сформировать данные для клиентов
     getGameData() {
         let data = {
@@ -274,8 +291,9 @@ class Game {
             colNum: this.getColNum(),
             gameID: this.getGameID(),
             lastMove: this.getLastMove(),
+            lastMovePlayerID: this.getLastMovePlayerID(),
             winnerID: this.getWinnerID(),
-            winnerCoords: this.getWinnerCoords()
+            winnerCoords: this.getWinnerCoords(),
         };
 
         return data;

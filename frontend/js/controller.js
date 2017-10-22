@@ -4,7 +4,8 @@ export default class Controller {
         this._socket = io();
         this.view = view;
         this.model = model;
-        this.onCellClick = this.onCellClick.bind(this);
+        this.onCellClick = this.onCellClick.bind(this)
+        this.onFindGameBtnClick = this.onFindGameBtnClick.bind(this);
     }
 
     // отправка собатия серверу
@@ -15,7 +16,9 @@ export default class Controller {
     // обработчик клика на ячейку
     onCellClick(event) {
         let target = event.target.closest('td');
-        if (target.tagName !== 'TD') return;
+        let itIsTableCell = (target.tagName === 'TD');
+        let itIsFilledCell = target.querySelector('.drawn');
+        if (!itIsTableCell || itIsFilledCell) return;
 
         this._makeMove(target);
     }
@@ -25,7 +28,7 @@ export default class Controller {
         let row = arr[1];
         let col = arr[2];
 
-        if (!this.model.checkMovePos(row, col)) return;
+        //if (!this.model.checkMovePos(row, col)) return;
 
         let moveData = {
             gameID: this.model.getGameID(),
@@ -34,7 +37,7 @@ export default class Controller {
         };
 
         this.trigger('move', moveData);
-        this.handleMove(row, col);
+        this.handleMoveOnClient(row, col);
     }
 
     // обработчик клика на кнопку поиска игры
@@ -68,9 +71,9 @@ export default class Controller {
     }
 
     // разрешаем или запрещаем клик по ячейке в зависимости от очередности хода
-    checkMoveTurn(gameData) {
+    checkMoveTurn(playerToMove) {
         // разрешаем или запрещаем клик по ячейке в зависимости от очередности хода
-        if ((gameData.currentTurn === 1 && this._socket.id === gameData.playerOne) || (gameData.currentTurn === 2 && this._socket.id === gameData.playerTwo)) {
+        if (playerToMove === this._socket.id) {
             this.view.on('click', this.onCellClick);
             this.view.setTurnText('Your turn');
         } else {
@@ -80,11 +83,11 @@ export default class Controller {
     }
 
     // обработка действий после совершения хода (сразу, а не по событию сервера)
-    handleMove(row, col) {
+    handleMoveOnClient(row, col) {
         // блокируем последующие клики пока с сервера не придет переход хода
         this.view.off('click', this.onCellClick);
         // рисуем сразу после клика
-        this.view.displayMove(row, col, this.model.turn);
+        this.view.displayMove(row, col, this.model.mark);
         // и пишем что очередь перешла к сопернику
         this.view.setTurnText('Your opponent\'s turn');
     }
@@ -128,13 +131,15 @@ export default class Controller {
     _setInProgressState(state, options) {
         this.view.render(options.rowNum, options.colNum);
         this.view.setFindGameBtnText('Quit game');
-        this.model.initGameBoard(options.colNum);
-        this.model.setState(state);
+        this.model.setTurns(this._socket.id, options.playerToMove);
         this.model.setGameID(options.gameID);
-        this.model.setTurns(options);
+        this.model.setState(state);
     }
 
     _setGameOverState(state, options) {
+        if (options.lastMovePlayerID !== this._socket.id) {
+            this.view.displayMove(options.lastMove.row, options.lastMove.col, this.model.opponentMark);
+        }
         let resultText = this._getResultText(options);
         this.view.displayResult(resultText);
         this.view.setFindGameBtnText('Find a game');

@@ -65,10 +65,12 @@ io.on('connection', function(socket){
         if (game) {
             let result = game.makeMove(moveData.row, moveData.col, socket.id);
             if (result === 'ok') {
-                io.to(game.getPlayerOne()).to(game.getPlayerTwo()).emit('move', game.getGameData());
+                let opponentID = game.getOpponentID(socket.id);
+                io.to(opponentID).emit('move', game.getGameData());
             } else if (result === 'bad move') {
                 io.to(socket.id).emit('bad move');
             } else if (result === 'game over') {
+                game.setLastMovePlayerID(socket.id);
                 io.to(game.getPlayerOne()).to(game.getPlayerTwo()).emit('game over', game.getGameData());
                 // завершаем игру
                 gamesManager.deleteGame(game.getGameID());
