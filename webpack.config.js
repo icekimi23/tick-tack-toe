@@ -3,6 +3,5 @@ module.exports = {
     output: {
         filename: './server/public/js/index.js'
     },
-    devtool : 'source-map',
-    watch: true
+    devtool: 'source-map'
 }
