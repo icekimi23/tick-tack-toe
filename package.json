@@ -19,7 +19,8 @@
     "morgan": "~1.8.1",
     "serve-favicon": "~2.4.2",
     "socket.io": "^2.0.3",
-    "uuid": "^3.1.0"
+    "uuid": "^3.1.0",
+    "webpack": "^3.8.1"
   },
   "repository": {
     "type": "git",
