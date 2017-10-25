@@ -1,9 +1,9 @@
-export default class View{
-    constructor(){
+export default class View {
+    constructor() {
         // контейнер для размещения игрового поля
         this._el = document.querySelector('#tick-tack-toe');
         // кнопка поиска игры
-        this._findGameBtn =  document.querySelector('#find-game');
+        this._findGameBtn = document.querySelector('#find-game');
     }
 
     // отрисовывает игровое поле
@@ -83,7 +83,7 @@ export default class View{
         if (figure === 'circle') {
             let circle = cell.querySelector('.circle');
             circle.classList.add('drawn');
-        } else if (figure === 'cross'){
+        } else if (figure === 'cross') {
             let cross = cell.querySelector('.cross');
             cross.classList.add('drawn');
         }
@@ -100,6 +100,20 @@ export default class View{
             }
         });
 
+    }
+
+    highlightWinnersCoord(coords) {
+        if (!Array.isArray(coords)) return;
+        let cellsArr = coords.map((coord) => {
+            let rowCoord = +coord[0];
+            let colCoord = +coord[1];
+            let id = 'cell-' + rowCoord + '-' + colCoord;
+            return this._el.querySelector('#' + id);
+        });
+
+        cellsArr.forEach((cell)=>{
+            cell.classList.add('winner-cell');
+        });
     }
 
     setTurnText(text) {

@@ -29,9 +29,9 @@
 
 .turn-text{
     text-align: center;
-    font-size: 30px;
+    font-size: 28px;
     color : #3F84D2;
-    margin: 30px;
+    margin: 25px;
 }
 
 #find-game{
@@ -74,6 +74,15 @@ button:focus{
 
 .winner-text.showed{
     opacity: 1;
+    -webkit-transition: all 0.5s ease-out;
+    -moz-transition: all 0.5s ease-out;
+    -ms-transition: all 0.5s ease-out;
+    -o-transition: all 0.5s ease-out;
+    transition: all 0.5s ease-out;
+}
+
+.winner-cell{
+    background: yellow;
     -webkit-transition: all 0.5s ease-out;
     -moz-transition: all 0.5s ease-out;
     -ms-transition: all 0.5s ease-out;

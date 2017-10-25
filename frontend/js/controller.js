@@ -141,11 +141,19 @@ export default class Controller {
             this.view.displayMove(options.lastMove.row, options.lastMove.col, this.model.opponentMark);
         }
         let resultText = this._getResultText(options);
-        this.view.displayResult(resultText);
-        this.view.setFindGameBtnText('Find a game');
-        this.view.setTurnText('Game over');
-        this.model.setState(state);
-        this.model.setGameID(null);
+        let resultShowDelay = 0;
+        if (options.winnerID.toLowerCase() !== 'draw'){
+            this.view.highlightWinnersCoord(options.winnerCoords);
+            resultShowDelay = 1000;
+        }
+        setTimeout(()=>{
+            this.view.displayResult(resultText);
+            this.view.setFindGameBtnText('Find a game');
+            this.view.setTurnText('Game over');
+            this.model.setState(state);
+            this.model.setGameID(null);
+        },resultShowDelay);
+
     }
 
     _setGameAbortedState(state, options) {
