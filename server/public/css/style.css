@@ -34,9 +34,13 @@
     margin: 25px;
 }
 
-#find-game{
+.btn-wrapper{
+    text-align: center;
+}
+
+.control-btn{
     margin: 0px auto;
-    display: block;
+    display: inline-block;
     border: none;
     background-color: #3f84d2;
     color: white;
@@ -51,7 +55,7 @@
     transition: all 0.3s ease-out;
 }
 
-#find-game:hover{
+#control-btn:hover{
     border-radius: 10px;
     -webkit-transition: all 0.3s ease-out;
     -moz-transition: all 0.3s ease-out;

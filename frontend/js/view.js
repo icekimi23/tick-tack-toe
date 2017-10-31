@@ -4,6 +4,9 @@ export default class View {
         this._el = document.querySelector('#tick-tack-toe');
         // кнопка поиска игры
         this._findGameBtn = document.querySelector('#find-game');
+
+        // кнопка поиска игры
+        this._playWithAIBtn = document.querySelector('#ai-game');
     }
 
     // отрисовывает игровое поле

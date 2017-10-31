@@ -7,7 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/font-awesome.min.css">
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="/vendor/bower_components/socket.io-client/dist/socket.io.slim.js"></script>
     <script src="js/index.js" defer></script>
     <title>tick-tack-toe</title>
 </head>
@@ -17,7 +17,10 @@
 
     </div>
 
-    <button id = "find-game"> Find a game! </button>
+    <div class="btn-wrapper">
+        <button id = "find-game" class = "control-btn"> Find a game </button>
+        <button id = "ai-game" class = "control-btn"> Play with AI </button>
+    </div>
 
 </body>
 </html>
