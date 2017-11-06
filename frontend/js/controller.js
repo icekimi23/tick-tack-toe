@@ -82,6 +82,10 @@ export default class Controller {
         }
     }
 
+    updateOnlineCount(count){
+        this.view.updateOnlineCount(count);
+    }
+
     // обработка действий после совершения хода (сразу, а не по событию сервера)
     handleMoveOnClient(row, col) {
         // блокируем последующие клики пока с сервера не придет переход хода

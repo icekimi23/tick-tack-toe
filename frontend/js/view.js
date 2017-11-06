@@ -5,6 +5,9 @@ export default class View {
         // кнопка поиска игры
         this._findGameBtn = document.querySelector('#find-game');
 
+        // счетчик игроков онлайн
+        this._playersOnline = document.querySelector('#players-online-count');
+
         // кнопка поиска игры
         this._playWithAIBtn = document.querySelector('#ai-game');
     }
@@ -76,6 +79,12 @@ export default class View {
     // меняет текст кнопки
     setFindGameBtnText(text) {
         this._findGameBtn.innerHTML = text;
+    }
+
+    updateOnlineCount(count){
+        let spanEl = this._playersOnline.querySelector('span');
+        if (count < 0) count = 0;
+        spanEl.innerHTML = count;
     }
 
     // отображает ход крестиков или ноликов в зависимости от параметра turn

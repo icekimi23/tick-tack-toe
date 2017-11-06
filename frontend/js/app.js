@@ -70,5 +70,10 @@ export default class App{
             this.view.off('click', this.controller.onCellClick);
             this.controller.setState('game aborted');
         });
+
+        // событие при отключении соперника
+        this.controller.on('current online', (onlineCount) => {
+           this.controller.updateOnlineCount(onlineCount);
+        });
     }
 }
